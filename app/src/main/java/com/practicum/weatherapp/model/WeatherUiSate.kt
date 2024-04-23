@@ -15,16 +15,16 @@ data class WeatherUiSate(
     val timeForecast: List<UiTimeForecast> = ArrayList(),
     val daysForecast: List<UiDayForecast> = ArrayList(),
 
-    val humiditToday: Float = 0f, // влажность %
+    val humiditToday: Int = 0, // влажность %
     @DrawableRes val humiditIcon: Int = R.drawable.ic_launcher_foreground,
 
-    val pressureToday: Float = 0f, // давление mb
+    val pressureToday: Int = 0, // давление mb
     @DrawableRes val pressureIcon: Int = R.drawable.ic_launcher_foreground,
 
-    val precipProb: Float = 0f, // вероятность выпадения осадков %
+    val precipProb: Int = 0, // вероятность выпадения осадков %
     @DrawableRes val precipProbIcon: Int = R.drawable.ic_launcher_foreground,
 
-    val windSpeedToday: Float = 0f,
+    val windSpeedToday: Int = 0,
     val windDirectionToday: Float = 0f,
     @DrawableRes val windIcon: Int = R.drawable.ic_launcher_foreground,
 
@@ -40,7 +40,7 @@ data class WeatherUiSate(
     )
 
 data class UiTimeForecast(
-    val time: Int,
+    val time: String,
     val temp: Int,
     @DrawableRes val icon: Int,
 )

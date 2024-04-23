@@ -17,6 +17,7 @@ data class DayWeather(
     @SerializedName("conditions") val conditions: String,
     @SerializedName("sunrise") val sunrise: String,
     @SerializedName("sunset") val sunset: String,
+    @SerializedName("icon") val icon: String,
     @SerializedName("hours") val hours: List<HourWeather>,
 
 //    @DrawableRes val icon: Int,

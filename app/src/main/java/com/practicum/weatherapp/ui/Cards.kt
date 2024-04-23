@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -218,6 +219,22 @@ fun OneBlock(
         second()
     }
 }
+@Composable
+@Preview(showBackground = true)
+fun windDirectionIcon() {
+    Box() {
+        Icon(painter = painterResource(id = R.drawable.wind), contentDescription = null)
+        Icon(
+            painter = painterResource(id = R.drawable.wind_arrow),
+            contentDescription = null,
+            tint = colorScheme.primary,
+            modifier = Modifier
+                .rotate(0f)
+        )
+    }
+}
+
+
 
 //@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 //@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)

@@ -34,7 +34,8 @@ fun ApiInit(
         override fun onResponse(call: Call<WeatherDataResponse>, response: Response<WeatherDataResponse>) {
             if (response.isSuccessful) {
                 val weatherData = response.body()
-                callback(weatherData) // Вызываем колбэк с полученными данными
+                callback(weatherData)
+                Log.d("MainActivity", "Success")
             } else {
                 callback(null) // В случае ошибки передаем null
                 Log.d("MainActivity", "ERROR 1")

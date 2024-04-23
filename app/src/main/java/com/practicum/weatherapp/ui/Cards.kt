@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.shapes
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,13 +31,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicum.weatherapp.R
-import com.practicum.weatherapp.model.WeatherRepository
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 
 @Composable
 fun CircleCard(
     modifier: Modifier = Modifier,
-    description: String?,
+    description: String? = null,
     temperatureMain: Int,
     temperatureHigh: Int?,
     temperatureLow: Int?,
@@ -44,7 +45,7 @@ fun CircleCard(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary)
+            .background(colorScheme.primary)
             .padding(16.dp)
             .aspectRatio(1f / 1f)
     ) {
@@ -55,26 +56,26 @@ fun CircleCard(
             if (description != null)
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    style = typography.bodySmall,
+                    color = colorScheme.secondary
                 )
             Text(
                 text = "$temperatureMain°",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary
+                style = typography.bodyMedium,
+                color = colorScheme.secondary
             )
             if (temperatureHigh != null && temperatureLow != null) {
                 Row {
                     Text(
                         text = "H: $temperatureHigh °",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
+                        style = typography.bodySmall,
+                        color = colorScheme.secondary
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "L : $temperatureLow °",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
+                        style = typography.bodySmall,
+                        color = colorScheme.secondary
 
                     )
                 }
@@ -91,8 +92,8 @@ fun RectangleCardSmall(
 ) {
     Card(
         modifier = modifier
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(MaterialTheme.colorScheme.background)
+            .clip(shapes.extraLarge)
+            .background(colorScheme.background)
             .aspectRatio(1f / 0.45f)
             .padding(16.dp)
     ) {
@@ -100,17 +101,17 @@ fun RectangleCardSmall(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(colorScheme.background)
         ) {
             Text(
                 text = title.uppercase(),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+                style = typography.titleLarge,
+                color = colorScheme.primary
             )
             Text(
                 text = description.uppercase(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = typography.titleMedium,
+                color = colorScheme.primary
             )
         }
     }
@@ -126,8 +127,8 @@ fun RectangleCardBig(
 ) {
     Card(
         modifier = modifier
-            .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.background)
+            .clip(shapes.large)
+            .background(colorScheme.background)
             .aspectRatio(1f / 1f)
     ) {
         Column(
@@ -137,14 +138,14 @@ fun RectangleCardBig(
         ) {
             Text(
                 text = title.uppercase(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = typography.titleMedium,
+                color = colorScheme.primary
             )
             if (description != null)
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    style = typography.titleLarge,
+                    color = colorScheme.primary
                 )
             Icon(
                 painter = painterResource(id = icon),
@@ -166,8 +167,8 @@ fun RectangleCardBig(
             ) {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = typography.bodyLarge,
+                    color = colorScheme.primary,
                     modifier = Modifier
                         .alignByBaseline()
                 )
@@ -175,9 +176,9 @@ fun RectangleCardBig(
                 Text(
                     text = extraText,
                     lineHeight = 20.sp,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = typography.labelLarge,
                     fontSize = 8.sp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = colorScheme.primary,
                     modifier = Modifier
                         .alignByBaseline()
                 )
@@ -218,73 +219,73 @@ fun OneBlock(
     }
 }
 
-@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-fun PreviewAllCards() {
-    WeatherAppTheme {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                OneRow(
-                    first = {
-                        CircleCard(
-                            description = "Feels Like",
-                            temperatureMain = 20,
-                            temperatureHigh = 32,
-                            temperatureLow = -2,
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                    },
-                    second = {
-                        OneBlock(
-                            modifier = Modifier.weight(1f),
-                            first = {
-                                RectangleCardSmall(
-                                    description = "Feels Like",
-                                    title = "Temperature",
-                                    modifier = Modifier
-                                )
-                            },
-                            second = {
-                                RectangleCardSmall(
-                                    description = "Feels Like",
-                                    title = "Temperature",
-                                    modifier = Modifier
-                                )
-                            }
-                        )
-                    }
-                )
-                Spacer(modifier = Modifier.size(16.dp))
-                OneRow(
-                    first = {
-                        RectangleCardBig(
-                            title = "Humidity",
-                            description = "Humidity",
-                            icon = R.drawable.ic_launcher_foreground,
-                            value = "70",
-                            modifier = Modifier.weight(1f)
-                        )
-                    },
-                    second = {
-                        RectangleCardBig(
-                            title = "Humidity",
-                            description = "Humidity",
-                            icon = R.drawable.ic_launcher_foreground,
-                            value = "70",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                )
-            }
-        }
-    }
-}
+//@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Composable
+//fun PreviewAllCards() {
+//    WeatherAppTheme {
+//        Surface(
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(16.dp)
+//            ) {
+//                OneRow(
+//                    first = {
+//                        CircleCard(
+//                            description = "Feels Like",
+//                            temperatureMain = 20,
+//                            temperatureHigh = 32,
+//                            temperatureLow = -2,
+//                            modifier = Modifier
+//                                .weight(1f)
+//                        )
+//                    },
+//                    second = {
+//                        OneBlock(
+//                            modifier = Modifier.weight(1f),
+//                            first = {
+//                                RectangleCardSmall(
+//                                    description = "Feels Like",
+//                                    title = "Temperature",
+//                                    modifier = Modifier
+//                                )
+//                            },
+//                            second = {
+//                                RectangleCardSmall(
+//                                    description = "Feels Like",
+//                                    title = "Temperature",
+//                                    modifier = Modifier
+//                                )
+//                            }
+//                        )
+//                    }
+//                )
+//                Spacer(modifier = Modifier.size(16.dp))
+//                OneRow(
+//                    first = {
+//                        RectangleCardBig(
+//                            title = "Humidity",
+//                            description = "Humidity",
+//                            icon = R.drawable.ic_launcher_foreground,
+//                            value = "70",
+//                            modifier = Modifier.weight(1f)
+//                        )
+//                    },
+//                    second = {
+//                        RectangleCardBig(
+//                            title = "Humidity",
+//                            description = "Humidity",
+//                            icon = R.drawable.ic_launcher_foreground,
+//                            value = "70",
+//                            modifier = Modifier.weight(1f)
+//                        )
+//                    }
+//                )
+//            }
+//        }
+//    }
+//}

@@ -1,35 +1,28 @@
 package com.practicum.weatherapp.ui
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.practicum.weatherapp.model.WeatherForDay
-import com.practicum.weatherapp.model.WeatherForHour
-import com.practicum.weatherapp.model.WeatherRepository.weatherForDays
-import com.practicum.weatherapp.model.WeatherRepository.weatherForHours
+import com.practicum.weatherapp.model.UiDayForecast
+import com.practicum.weatherapp.model.UiTimeForecast
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 
 @Composable
 fun CardListBig(
-    weatherForecast: List<WeatherForDay>,
+    weatherForecast: List<UiDayForecast>,
     modifier: Modifier = Modifier
 ) {
     WeatherAppTheme {
@@ -54,7 +47,7 @@ fun CardListBig(
 
 @Composable
 fun CardListSmall(
-    weatherForecast: List<WeatherForHour>,
+    weatherForecast: List<UiTimeForecast>,
     modifier: Modifier = Modifier
 ) {
     WeatherAppTheme {
@@ -79,7 +72,7 @@ fun CardListSmall(
 
 @Composable
 fun ItemCardListBig(
-    weatherForecastDay: WeatherForDay,
+    weatherForecastDay: UiDayForecast,
     modifier: Modifier = Modifier
 ) {
     WeatherAppTheme {
@@ -89,10 +82,10 @@ fun ItemCardListBig(
             modifier = modifier
         ) {
             var color = MaterialTheme.colorScheme.primary
-            if (weatherForecastDay.day.lowercase() != "today")
+            if (weatherForecastDay.date.lowercase() != "today")
                 color = MaterialTheme.colorScheme.tertiary
             Text(
-                text = weatherForecastDay.day.uppercase(),
+                text = weatherForecastDay.date.uppercase(),
                 style = MaterialTheme.typography.labelLarge,
                 color = color
             )
@@ -103,13 +96,13 @@ fun ItemCardListBig(
                     .size(32.dp)
             )
             Text(
-                text = "${weatherForecastDay.temperatureMain}°",
+                text = "${weatherForecastDay.tempMax}°",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
 
                 )
             Text(
-                text = "${weatherForecastDay.temperatureLow}°",
+                text = "${weatherForecastDay.tempMin}°",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
@@ -119,7 +112,7 @@ fun ItemCardListBig(
 
 @Composable
 fun ItemCardListSmall(
-    weatherForecastHour: WeatherForHour,
+    weatherForecastHour: UiTimeForecast,
     modifier: Modifier = Modifier
 ) {
     WeatherAppTheme {
@@ -146,7 +139,7 @@ fun ItemCardListSmall(
                         .size(32.dp)
                 )
                 Text(
-                    text = "${weatherForecastHour.temperatureMain}°",
+                    text = "${weatherForecastHour.temp}°",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -155,24 +148,24 @@ fun ItemCardListSmall(
     }
 }
 
-@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-fun PreviewAllLists(){
-    WeatherAppTheme {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Column (
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ){
-                CardListBig(weatherForDays)
-                Spacer(modifier = Modifier.size(16.dp))
-                CardListSmall(weatherForHours)
-            }
-        }
-    }
-}
+//@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Composable
+//fun PreviewAllLists(){
+//    WeatherAppTheme {
+//        Surface(
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            Column (
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(16.dp)
+//            ){
+//                CardListBig(weatherForDays)
+//                Spacer(modifier = Modifier.size(16.dp))
+//                CardListSmall(weatherTodays)
+//            }
+//        }
+//    }
+//}

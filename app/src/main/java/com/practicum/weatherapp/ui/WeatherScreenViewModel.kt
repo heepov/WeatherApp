@@ -23,7 +23,7 @@ class WeatherScreenViewModel : ViewModel() {
     }
 
     private fun updateForecast() {
-        ApiInit(location = "cairo") { weatherData ->
+        ApiInit(location = "moscow") { weatherData ->
             if (weatherData != null) {
                 _uiState.update { currentState ->
                     currentState.copy(
@@ -40,10 +40,8 @@ class WeatherScreenViewModel : ViewModel() {
                         humiditIcon = R.drawable.humidity,
 
                         pressureToday = weatherData.currentConditions.pressure.toInt(),
-//                        pressureIcon = R.drawable.humidity,
 
                         precipProb = weatherData.currentConditions.precipProb.toInt(),
-//                        precipProbIcon = R.drawable.humidity,
 
                         windSpeedToday = weatherData.currentConditions.windSpeed.toInt(),
                         windDirectionToday = weatherData.currentConditions.windDirection,

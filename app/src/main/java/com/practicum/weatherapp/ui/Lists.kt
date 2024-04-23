@@ -1,5 +1,6 @@
 package com.practicum.weatherapp.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.shapes
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,16 +32,18 @@ fun CardListBig(
     WeatherAppTheme {
         Card(
             modifier = modifier
-                .clip(MaterialTheme.shapes.large)
+                .clip(shapes.large)
         ) {
             LazyRow(
                 modifier = modifier
                     .padding(vertical = 12.dp)
+                    .background(colorScheme.surface)
             ) {
                 items(weatherForecast.size) { index ->
                     ItemCardListBig(
                         weatherForecast[index],
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
                     )
                 }
             }
@@ -53,11 +59,13 @@ fun CardListSmall(
     WeatherAppTheme {
         Card(
             modifier = modifier
-                .clip(MaterialTheme.shapes.large)
+                .clip(shapes.large)
+                .background(colorScheme.surface)
         ) {
             LazyRow(
                 modifier = modifier
                     .padding(vertical = 12.dp)
+                    .background(colorScheme.surface)
             ) {
                 items(weatherForecast.size) { index ->
                     ItemCardListSmall(
@@ -81,30 +89,31 @@ fun ItemCardListBig(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
         ) {
-            var color = MaterialTheme.colorScheme.primary
+            var color = colorScheme.primary
             if (weatherForecastDay.date.lowercase() != "today")
-                color = MaterialTheme.colorScheme.tertiary
+                color = colorScheme.tertiary
             Text(
                 text = weatherForecastDay.date.uppercase(),
-                style = MaterialTheme.typography.labelLarge,
+                style = typography.labelLarge,
                 color = color
             )
             Icon(
                 painter = painterResource(id = weatherForecastDay.icon),
                 contentDescription = null,
+                tint = colorScheme.primary,
                 modifier = Modifier
                     .size(32.dp)
             )
             Text(
                 text = "${weatherForecastDay.tempMax}°",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+                style = typography.labelLarge,
+                color = colorScheme.primary,
 
                 )
             Text(
                 text = "${weatherForecastDay.tempMin}°",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.tertiary
+                style = typography.labelMedium,
+                color = colorScheme.tertiary
             )
         }
     }
@@ -121,12 +130,12 @@ fun ItemCardListSmall(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
         ) {
-            var color = MaterialTheme.colorScheme.primary
+            var color = colorScheme.primary
             if (weatherForecastHour.time.toString().lowercase() != "now")
-                color = MaterialTheme.colorScheme.tertiary
+                color = colorScheme.tertiary
             Text(
                 text = weatherForecastHour.time.toString().uppercase(),
-                style = MaterialTheme.typography.labelLarge,
+                style = typography.labelLarge,
                 color = color
             )
             Row(
@@ -135,13 +144,14 @@ fun ItemCardListSmall(
                 Icon(
                     painter = painterResource(id = weatherForecastHour.icon),
                     contentDescription = null,
+                    tint = colorScheme.primary,
                     modifier = Modifier
                         .size(32.dp)
                 )
                 Text(
                     text = "${weatherForecastHour.temp}°",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = typography.labelLarge,
+                    color = colorScheme.primary,
                 )
             }
         }

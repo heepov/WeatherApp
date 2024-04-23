@@ -21,9 +21,9 @@ private val DarkColorScheme = darkColorScheme(
     secondary = Black,
     tertiary = White80,
 
-    background = BlackBright,
-    surfaceVariant = BlackBright,
-    surface = Black,
+    background = Black,
+    surface = BlackBright,
+    surfaceVariant = BlackBright
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -31,9 +31,9 @@ private val LightColorScheme = lightColorScheme(
     secondary = White,
     tertiary = BlackBright80,
 
-    background = White,
-    surfaceVariant = White,
-    surface = WhiteDark,
+    background = WhiteDark,
+    surface = White,
+    surfaceVariant = White
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
@@ -65,7 +65,7 @@ fun WeatherAppTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.surface.toArgb()
+            window.statusBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
             WindowCompat.getInsetsController(window, view)?.let { controller ->
                 controller.isAppearanceLightStatusBars = !darkTheme

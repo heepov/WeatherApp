@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -91,13 +92,13 @@ fun WeatherScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(colorScheme.surface)
+                                .background(colorScheme.background)
                                 .padding(bottom = 16.dp)
                         ) {
-                            CircleCard(
-                                temperatureMain = weatherUiState.tempNow,
-                                temperatureHigh = weatherUiState.tempTodayMax,
-                                temperatureLow = weatherUiState.tempTodayMin,
+                            CircleCardSimple(
+                                value = weatherUiState.tempNow,
+                                extraValueFirst = weatherUiState.tempTodayMax,
+                                extraValueSecond = weatherUiState.tempTodayMin,
                                 modifier = Modifier
                                     .weight(1f)
                             )
@@ -106,14 +107,20 @@ fun WeatherScreen(
                                     .weight(1f),
                             ) {
                                 RectangleCardSmall(
-                                    description = "Feels Like",
-                                    title = "Temperature",
+                                    title = "${
+                                        stringResource(id = R.string.precipitation_chance)
+                                            .uppercase()
+                                    } ${weatherUiState.precipProb}%",
+                                    description = "High", // TODO
                                     modifier = Modifier
                                 )
                                 Spacer(modifier = Modifier.size(16.dp))
                                 RectangleCardSmall(
-                                    description = "Feels Like",
-                                    title = "Temperature",
+                                    title = "${
+                                        stringResource(id = R.string.pressure)
+                                            .uppercase()
+                                    } ${weatherUiState.pressureToday}",
+                                    description = "High", // TODO
                                     modifier = Modifier
                                 )
                             }
@@ -121,7 +128,63 @@ fun WeatherScreen(
                     }
 
                     item {
-                        WeatherScreenTmp()
+                        Column(
+                            modifier = Modifier
+                        ) {
+                            Spacer(modifier = Modifier.size(16.dp))
+                            CardListSmall(weatherUiState.timeForecast)
+                            Spacer(modifier = Modifier.size(16.dp))
+                            CardListBig(weatherUiState.daysForecast)
+                            Spacer(modifier = Modifier.size(16.dp))
+                            Row() {
+                                RectangleCardWithUnit(
+                                    title = R.string.humidity,
+                                    icon = R.drawable.humidity,
+                                    value = weatherUiState.humiditToday,
+                                    unit = R.string.percent,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.size(16.dp))
+                                RectangleCardWithUnit(
+                                    title = R.string.wind_speed,
+                                    value = weatherUiState.windSpeedToday,
+                                    direction = weatherUiState.windDirectionToday,
+                                    unit = R.string.wind_unit_metric,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            Spacer(modifier = Modifier.size(16.dp))
+                            Row() {
+                                RectangleCardWithDescription(
+                                    title = R.string.uv_index,
+                                    icon = R.drawable.uv_index,
+                                    value = weatherUiState.uvIndexToday,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.size(16.dp))
+                                RectangleCardSimple(
+                                    title = R.string.sunrise,
+                                    value = weatherUiState.sunriseToday,
+                                    icon = R.drawable.sunrise,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            Spacer(modifier = Modifier.size(16.dp))
+                            Row() {
+                                RectangleCardSimple(
+                                    title = R.string.sunset,
+                                    value = weatherUiState.sunsetToday,
+                                    icon = R.drawable.sunset,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.size(16.dp))
+                                CircleCardWithDescription(
+                                    description = R.string.feels_like,
+                                    value = weatherUiState.tempFeelsLike,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -136,7 +199,7 @@ private fun AppBar(
 ) {
     Row(
         modifier = modifier
-            .background(colorScheme.surface),
+            .background(colorScheme.background),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -145,12 +208,13 @@ private fun AppBar(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                tint = colorScheme.primary,
                 contentDescription = null,
             )
         }
 
         Text(
-            text = place,
+            text = place.capitalize(),
             style = typography.titleLarge,
             color = colorScheme.primary
         )
@@ -159,109 +223,10 @@ private fun AppBar(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                tint = colorScheme.primary,
                 contentDescription = null,
             )
         }
-    }
-}
-
-
-//@OptIn(ExperimentalFoundationApi::class)
-//@Composable
-//fun WeatherScreenBody(modifier: Modifier = Modifier) {
-//    val state = rememberLazyListState()
-//    WeatherAppTheme {
-//        Surface(
-//            modifier = modifier
-//                .fillMaxSize()
-//        ) {
-//            LazyColumn(
-//                state = state,
-//                modifier = Modifier
-//                    .padding(horizontal = 20.dp)
-//            ) {
-//                item {
-//                    AppWallpaper(
-//                        icon = R.drawable.ic_launcher_foreground,
-//                        description = "Feels Like",
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                }
-//                stickyHeader {
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .background(colorScheme.surface)
-//                            .padding(bottom = 16.dp)
-//                    ) {
-//                        CircleCard(
-//                            description = "Feels Like",
-//                            temperatureMain = 20,
-//                            temperatureHigh = 32,
-//                            temperatureLow = -2,
-//                            modifier = Modifier
-//                                .weight(1f)
-//                        )
-//                        Column(
-//                            modifier = Modifier
-//                                .weight(1f),
-//                        ) {
-//                            RectangleCardSmall(
-//                                description = "Feels Like",
-//                                title = "Temperature",
-//                                modifier = Modifier
-//                            )
-//                            Spacer(modifier = Modifier.size(16.dp))
-//                            RectangleCardSmall(
-//                                description = "Feels Like",
-//                                title = "Temperature",
-//                                modifier = Modifier
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                item {
-//                    WeatherScreenTmp()
-//                }
-//            }
-//        }
-//    }
-//}
-
-@Composable
-fun WeatherScreenTmp(
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-    ) {
-        Spacer(modifier = Modifier.size(16.dp))
-//        CardListSmall()
-        Spacer(modifier = Modifier.size(16.dp))
-//        CardListBig()
-        Spacer(modifier = Modifier.size(16.dp))
-        OneRow(
-            first = {
-                RectangleCardBig(
-                    title = "Humidity",
-                    description = "Humidity",
-                    icon = R.drawable.ic_launcher_foreground,
-                    value = "70",
-                    modifier = Modifier.weight(1f)
-                )
-            },
-            second = {
-                RectangleCardBig(
-                    title = "Humidity",
-                    description = "Humidity",
-                    icon = R.drawable.ic_launcher_foreground,
-                    value = "70",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        )
-        Spacer(modifier = Modifier.size(16.dp))
     }
 }
 
@@ -281,6 +246,7 @@ fun AppWallpaper(
         Icon(
             painter = painterResource(id = icon),
             contentDescription = null,
+            tint = colorScheme.primary,
             modifier = Modifier
                 .size(360.dp)
         )

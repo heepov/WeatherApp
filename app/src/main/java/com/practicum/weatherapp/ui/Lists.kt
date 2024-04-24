@@ -4,12 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
@@ -43,7 +43,7 @@ fun CardListBig(
                     ItemCardListBig(
                         weatherForecast[index],
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 20.dp)
                     )
                 }
             }
@@ -70,7 +70,7 @@ fun CardListSmall(
                 items(weatherForecast.size) { index ->
                     ItemCardListSmall(
                         weatherForecast[index],
-                        modifier = Modifier.padding(horizontal = 12.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
@@ -103,6 +103,7 @@ fun ItemCardListBig(
                 tint = colorScheme.primary,
                 modifier = Modifier
                     .size(32.dp)
+                    .padding(vertical = 4.dp)
             )
             Text(
                 text = "${weatherForecastDay.tempMax}°",
@@ -113,7 +114,8 @@ fun ItemCardListBig(
             Text(
                 text = "${weatherForecastDay.tempMin}°",
                 style = typography.labelMedium,
-                color = colorScheme.tertiary
+                color = colorScheme.tertiary,
+                modifier = Modifier.padding(vertical = 4.dp)
             )
         }
     }
@@ -131,10 +133,10 @@ fun ItemCardListSmall(
             modifier = modifier
         ) {
             var color = colorScheme.primary
-            if (weatherForecastHour.time.toString().lowercase() != "now")
+            if (weatherForecastHour.time.lowercase() != "now")
                 color = colorScheme.tertiary
             Text(
-                text = weatherForecastHour.time.toString().uppercase(),
+                text = weatherForecastHour.time.uppercase(),
                 style = typography.labelLarge,
                 color = color
             )
@@ -147,7 +149,9 @@ fun ItemCardListSmall(
                     tint = colorScheme.primary,
                     modifier = Modifier
                         .size(32.dp)
+                        .padding(vertical = 4.dp)
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 Text(
                     text = "${weatherForecastHour.temp}°",
                     style = typography.labelLarge,
@@ -157,25 +161,3 @@ fun ItemCardListSmall(
         }
     }
 }
-
-//@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-//@Composable
-//fun PreviewAllLists(){
-//    WeatherAppTheme {
-//        Surface(
-//            modifier = Modifier
-//                .fillMaxSize()
-//        ) {
-//            Column (
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .padding(16.dp)
-//            ){
-//                CardListBig(weatherForDays)
-//                Spacer(modifier = Modifier.size(16.dp))
-//                CardListSmall(weatherTodays)
-//            }
-//        }
-//    }
-//}

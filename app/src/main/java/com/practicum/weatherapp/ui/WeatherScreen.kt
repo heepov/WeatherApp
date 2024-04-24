@@ -80,6 +80,7 @@ fun WeatherScreen(
                     modifier = Modifier
                         .padding(contentPadding)
                         .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp)
                 ) {
                     item {
                         AppWallpaper(
@@ -111,7 +112,7 @@ fun WeatherScreen(
                                         stringResource(id = R.string.precipitation_chance)
                                             .uppercase()
                                     } ${weatherUiState.precipProb}%",
-                                    description = "High", // TODO
+                                    description = weatherUiState.presipProbLevel,
                                     modifier = Modifier
                                 )
                                 Spacer(modifier = Modifier.size(16.dp))
@@ -120,7 +121,7 @@ fun WeatherScreen(
                                         stringResource(id = R.string.pressure)
                                             .uppercase()
                                     } ${weatherUiState.pressureToday}",
-                                    description = "High", // TODO
+                                    description = weatherUiState.pressureLevelToday,
                                     modifier = Modifier
                                 )
                             }
@@ -157,6 +158,7 @@ fun WeatherScreen(
                             Row() {
                                 RectangleCardWithDescription(
                                     title = R.string.uv_index,
+                                    description = weatherUiState.uvIndexLevelToday,
                                     icon = R.drawable.uv_index,
                                     value = weatherUiState.uvIndexToday,
                                     modifier = Modifier.weight(1f)

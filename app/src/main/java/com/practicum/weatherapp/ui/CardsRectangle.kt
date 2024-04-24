@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ fun RectangleCardSmall(
             .background(colorScheme.surface)
             .aspectRatio(1f / 0.45f)
             .padding(16.dp)
+            .padding(horizontal = 8.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -70,8 +72,8 @@ fun RectangleCardWithDescription(
     @StringRes title: Int,
     @DrawableRes icon: Int,
     value: Int,
+    description: String
 ) {
-    val description = "Low" //TODO
     Card(
         modifier = modifier
             .clip(MaterialTheme.shapes.large)
@@ -96,6 +98,7 @@ fun RectangleCardWithDescription(
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
+                tint = colorScheme.primary,
                 modifier = Modifier
                     .weight(0.8f)
                     .fillMaxWidth()
@@ -123,7 +126,7 @@ fun RectangleCardWithUnit(
     Card(
         modifier = modifier
             .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.background)
+            .background(colorScheme.background)
             .aspectRatio(1f / 1f)
     ) {
         Column(
@@ -137,11 +140,18 @@ fun RectangleCardWithUnit(
                 color = colorScheme.primary
             )
             if (direction != null) {
-                WindDirectionIcon(direction)
+                WindDirectionIcon(
+                    direction = direction,
+                    modifier = Modifier
+                        .weight(0.8f)
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                )
             } else {
                 Icon(
                     painter = painterResource(id = icon),
                     contentDescription = null,
+                    tint = colorScheme.primary,
                     modifier = Modifier
                         .weight(0.8f)
                         .fillMaxWidth()
@@ -199,6 +209,7 @@ fun RectangleCardSimple(
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
+                tint = colorScheme.primary,
                 modifier = Modifier
                     .weight(0.8f)
                     .fillMaxWidth()
@@ -215,15 +226,50 @@ fun RectangleCardSimple(
 }
 
 @Composable
-fun WindDirectionIcon(direction: Float) {
-    Box() {
-        Icon(painter = painterResource(id = R.drawable.wind), contentDescription = null)
+fun WindDirectionIcon(
+    modifier: Modifier = Modifier,
+    direction: Float,
+){
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.wind),
+            contentDescription = null,
+            tint = colorScheme.primary,
+            modifier = Modifier
+                .fillMaxSize()
+        )
         Icon(
             painter = painterResource(id = R.drawable.wind_arrow),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = colorScheme.primary,
             modifier = Modifier
+                .fillMaxSize()
                 .rotate(direction)
         )
     }
+}
+@Preview(showBackground = true)
+@Composable
+fun RectangleCardWindPreview(){
+    Row() {
+        RectangleCardWithUnit(
+            title = R.string.humidity,
+            icon = R.drawable.humidity,
+            value = 23,
+            unit = R.string.percent,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.size(16.dp))
+        RectangleCardWithUnit(
+            title = R.string.wind_speed,
+            value = 12,
+            unit = R.string.wind_unit_metric,
+            direction = 270.0f,
+            modifier = Modifier.weight(1f)
+        )
+    }
+
 }

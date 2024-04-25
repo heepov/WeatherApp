@@ -233,6 +233,7 @@ fun WindDirectionIcon(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .padding(top = 4.dp)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.wind),

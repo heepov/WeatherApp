@@ -10,9 +10,9 @@ import androidx.compose.ui.graphics.Color
 //val PurpleGrey40 = Color(0xFF625b71)
 //val Pink40 = Color(0xFF7D5260)
 val White = Color(0xFFE7E9E8)
-val White80 = Color(0xCCE7E8E8)
+val White60 = Color(0x99E7E8E8)
 val WhiteDark = Color(0xFFD7D9D8)
 
 val Black = Color(0xFF000000)
 val BlackBright = Color(0xFF1C1D1E)
-val BlackBright80 = Color(0xCC1C1D1E)
+val BlackBright60 = Color(0x991C1D1E)

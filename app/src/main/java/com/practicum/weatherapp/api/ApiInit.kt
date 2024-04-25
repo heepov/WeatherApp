@@ -1,12 +1,20 @@
 package com.practicum.weatherapp.api
 
 import android.util.Log
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import com.practicum.weatherapp.model.WeatherDataResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.Date
 
 fun ApiInit(
     location: String = "moscow",
@@ -17,7 +25,13 @@ fun ApiInit(
 ) {
     val retrofit = Retrofit.Builder()
         .baseUrl("https://weather.visualcrossing.com/")
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(
+            GsonConverterFactory.create(
+                GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime::class.java, CustomDateTypeAdapter())
+                    .create()
+            )
+        )
         .build()
 
     val weatherApi = retrofit.create(WeatherApi::class.java)
@@ -47,4 +61,17 @@ fun ApiInit(
             Log.d("MainActivity", "ERROR")
         }
     })
+
+}
+class CustomDateTypeAdapter : TypeAdapter<LocalDateTime>() {
+
+    override fun write(out: JsonWriter, value: LocalDateTime) {
+        out.value(value.toEpochSecond(ZoneId.systemDefault().rules.getOffset(value)))
+    }
+
+    override fun read(`in`: JsonReader): LocalDateTime {
+        val epochSeconds = `in`.nextLong()
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault())
+    }
+
 }

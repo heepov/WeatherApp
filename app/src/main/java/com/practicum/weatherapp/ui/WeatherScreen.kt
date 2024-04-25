@@ -2,6 +2,7 @@ package com.practicum.weatherapp.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -30,13 +32,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.practicum.weatherapp.R
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
@@ -51,6 +66,28 @@ fun WeatherScreen(
 ) {
     val weatherUiState by weatherViewModel.uiState.collectAsState()
     val state = rememberLazyListState()
+    val density = LocalDensity.current
+    val iconMinSize = 180.dp
+    val iconMaxSize = 360.dp
+    var iconSize by remember { mutableStateOf(iconMaxSize) }
+    var appWallpaperAlpha by remember { mutableFloatStateOf(1f) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                fun deltaDp() = with(density) { available.y.toDp() }
+                if (available.y < 0 && iconSize > iconMinSize && state.firstVisibleItemIndex == 0) {
+                    iconSize = max(iconMinSize, iconSize + deltaDp())
+                }
+                if (available.y > 0 && iconSize < iconMaxSize && state.firstVisibleItemIndex == 0) {
+                    iconSize = min(iconMaxSize, iconSize + deltaDp())
+                }
+                appWallpaperAlpha = (iconSize - iconMinSize) / (iconMaxSize - iconMinSize)
+                return Offset.Zero
+            }
+        }
+    }
+
 
     WeatherAppTheme {
         Surface(
@@ -81,12 +118,19 @@ fun WeatherScreen(
                         .padding(contentPadding)
                         .padding(horizontal = 20.dp)
                         .padding(bottom = 32.dp)
+                        .nestedScroll(nestedScrollConnection)
                 ) {
+
+
                     item {
                         AppWallpaper(
                             icon = weatherUiState.wallpaperIcon,
                             description = weatherUiState.conditionsNow,
-                            modifier = Modifier.fillMaxWidth()
+                            iconSize = iconSize,
+                            iconAlpha = appWallpaperAlpha,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(appWallpaperAlpha)
                         )
                     }
                     stickyHeader {
@@ -125,7 +169,14 @@ fun WeatherScreen(
                                     modifier = Modifier
                                 )
                             }
+
                         }
+                        Divider(
+                            color = colorScheme.primary,
+                            thickness = 2.dp,
+                            modifier = Modifier
+                                .alpha(1 - appWallpaperAlpha)
+                            )
                     }
 
                     item {
@@ -159,7 +210,7 @@ fun WeatherScreen(
                                 RectangleCardWithDescription(
                                     title = R.string.uv_index,
                                     description = weatherUiState.uvIndexLevelToday,
-                                    icon = R.drawable.uv_index,
+                                    icon = weatherUiState.uvIcon,
                                     value = weatherUiState.uvIndexToday,
                                     modifier = Modifier.weight(1f)
                                 )
@@ -194,6 +245,8 @@ fun WeatherScreen(
     }
 }
 
+
+
 @Composable
 private fun AppBar(
     modifier: Modifier = Modifier,
@@ -209,7 +262,7 @@ private fun AppBar(
             onClick = { /*TODO*/ },
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.menu),
                 tint = colorScheme.primary,
                 contentDescription = null,
             )
@@ -224,7 +277,7 @@ private fun AppBar(
             onClick = { /*TODO*/ },
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.settings),
                 tint = colorScheme.primary,
                 contentDescription = null,
             )
@@ -236,6 +289,8 @@ private fun AppBar(
 fun AppWallpaper(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
+    iconSize: Dp,
+    iconAlpha: Float,
     description: String,
 ) {
     Column(
@@ -250,7 +305,8 @@ fun AppWallpaper(
             contentDescription = null,
             tint = colorScheme.primary,
             modifier = Modifier
-                .size(360.dp)
+                .size(iconSize)
+                .alpha(iconAlpha)
         )
         Text(
             text = description,

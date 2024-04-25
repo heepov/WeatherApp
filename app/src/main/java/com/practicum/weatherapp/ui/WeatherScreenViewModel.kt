@@ -7,6 +7,7 @@ import com.practicum.weatherapp.model.DayWeather
 import com.practicum.weatherapp.model.UiDayForecast
 import com.practicum.weatherapp.model.UiTimeForecast
 import com.practicum.weatherapp.model.WeatherUiSate
+import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.iconsUvIndex
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.iconsWeather
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.precipProbLevel
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.pressureLevel
@@ -16,13 +17,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 class WeatherScreenViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(WeatherUiSate())
     val uiState: StateFlow<WeatherUiSate> = _uiState.asStateFlow()
+    private val currentDateTime = LocalDateTime.now()
 
     init {
         updateForecast()
@@ -35,9 +42,8 @@ class WeatherScreenViewModel : ViewModel() {
             if (weatherData != null) {
                 _uiState.update { currentState ->
                     currentState.copy(
-                        date = weatherData.currentConditions.date,
                         location = weatherData.address,
-                        wallpaperIcon = getIcon(weatherData.currentConditions.icon),
+                        wallpaperIcon = getWeatherIcon(weatherData.currentConditions.icon),
 
                         conditionsNow = weatherData.currentConditions.conditions,
                         tempNow = weatherData.currentConditions.temp.toInt(),
@@ -57,9 +63,9 @@ class WeatherScreenViewModel : ViewModel() {
                         windDirectionToday = weatherData.currentConditions.windDirection,
 
                         uvIndexToday = weatherData.currentConditions.uvIndex,
-                        uvIndexLevelToday = getUvIndexLevel(weatherData.currentConditions.uvIndex) ,
+                        uvIndexLevelToday = getUvIndexLevel(weatherData.currentConditions.uvIndex),
                         severeRiskToday = weatherData.days.first().severeRisk,
-                        uvIcon = R.drawable.uv_index,
+                        uvIcon = getUvIndexIcon(getUvIndexLevel(weatherData.currentConditions.uvIndex)),
 
                         sunriseToday = outputTimeFormat.format(inputTimeFormat.parse(weatherData.currentConditions.sunrise)),
                         sunriseIcon = R.drawable.sunrise,
@@ -76,42 +82,69 @@ class WeatherScreenViewModel : ViewModel() {
             }
         }
     }
-    private fun getDaysForecast(listDays: List<DayWeather>): List<UiDayForecast> {
-        val inputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
-        val outputFormat = DateTimeFormatter.ofPattern("dd", Locale.getDefault())
 
+    private fun getDaysForecast(listDays: List<DayWeather>): List<UiDayForecast> {
         val list = mutableListOf<UiDayForecast>()
         listDays.forEach { day ->
-            list.add(UiDayForecast(
-                date = LocalDate.parse(day.date, inputFormat).format(outputFormat),
-                tempMax = day.tempMax.toInt(),
-                tempMin = day.tempMin.toInt(),
-                icon = getIcon(day.icon)
-            ))
+                list.add(
+                    UiDayForecast(
+                        date = getDayOfWeek(day.dateTime),
+                        tempMax = day.tempMax.toInt(),
+                        tempMin = day.tempMin.toInt(),
+                        icon = getWeatherIcon(day.icon)
+                    )
+                )
         }
         return list.take(7)
     }
-    private fun getTimeForecast(listDays: List<DayWeather>): List<UiTimeForecast> {
-        val list = mutableListOf<UiTimeForecast>()
-        val inputTimeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        val outputTimeFormatShort = SimpleDateFormat("HH", Locale.getDefault())
-        listDays.forEach { day ->
-            day.hours.forEach {hour ->
-                list.add(UiTimeForecast(
-                    time = outputTimeFormatShort.format(inputTimeFormat.parse(hour.date)),
-                    temp = hour.temp.toInt(),
-                    icon = getIcon(hour.icon)
-                ))
-            }
+
+    private fun getDayOfWeek(dateTime: LocalDateTime): String {
+        return if (currentDateTime.toLocalDate() == dateTime.toLocalDate()) {
+            "Today"
+        } else {
+            dateTime.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH).substring(0, 3)
         }
-        return list.take(24)
     }
 
-    private fun getIcon(iconKey: String): Int {
+    private fun getTimeForecast(listDays: List<DayWeather>): List<UiTimeForecast> {
+        val list = mutableListOf<UiTimeForecast>()
+
+        listDays.forEach { day ->
+            day.hours.forEach { hour ->
+                if (currentDateTime <= hour.dateTime.plusHours(1)) {
+                    list.add(
+                        UiTimeForecast(
+                            time = getTimes(hour.dateTime),
+                            temp = hour.temp.toInt(),
+                            icon = getWeatherIcon(hour.icon)
+                        )
+                    )
+                }
+            }
+        }
+        return list.take(12)
+    }
+
+    private fun getTimes(dateTime: LocalDateTime): String {
+        val formatter = DateTimeFormatter.ofPattern("HH")
+        return if (dateTime.toLocalTime().hour == currentDateTime.toLocalTime().hour)
+            "Now"
+        else dateTime.format(formatter)
+    }
+
+
+    private fun getWeatherIcon(iconKey: String): Int {
         return if (iconsWeather.containsKey(iconKey) && iconsWeather[iconKey] != null) {
             iconsWeather[iconKey]!!
         } else
             R.drawable.sunny
+    }
+
+    private fun getUvIndexIcon(iconKey: String): Int {
+        return if (iconsUvIndex.containsKey(iconKey) && iconsUvIndex[iconKey] != null) {
+            iconsUvIndex[iconKey]!!
+        } else
+            R.drawable.uv_index_01
     }
 
     private fun getUvIndexLevel(uvIndex: Int): String {
@@ -123,6 +156,7 @@ class WeatherScreenViewModel : ViewModel() {
             else -> uvIndexLevel[4]
         }
     }
+
     private fun getPressureLevel(pressure: Int): String {
         return when {
             pressure < 1000 -> pressureLevel[0]
@@ -138,6 +172,10 @@ class WeatherScreenViewModel : ViewModel() {
         }
     }
 
+    fun getCurrentDate(): LocalDate {
+        return LocalDate.now()
+    }
+
     private object weatherTypesAndLeves {
         val iconsWeather = mapOf(
             "snow" to R.drawable.rainy,
@@ -150,6 +188,15 @@ class WeatherScreenViewModel : ViewModel() {
             "clear-day" to R.drawable.sunny,
             "clear-night" to R.drawable.sunny
         )
+
+        val iconsUvIndex = mapOf(
+            "Low" to R.drawable.uv_index_01,
+            "Normal" to R.drawable.uv_index_02,
+            "High" to R.drawable.uv_index_03,
+            "Very High" to R.drawable.uv_index_04,
+            "Extreme" to R.drawable.uv_index_05,
+        )
+
         val pressureLevel = listOf(
             "Low",
             "Normal",

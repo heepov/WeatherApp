@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import com.practicum.weatherapp.R
 
 data class WeatherUiSate(
-    val date: String = "",
     val location: String = "",
     @DrawableRes val wallpaperIcon: Int = R.drawable.ic_launcher_foreground,
     val conditionsNow: String = "",
@@ -19,11 +18,11 @@ data class WeatherUiSate(
     @DrawableRes val humiditIcon: Int = R.drawable.ic_launcher_foreground,
 
     val pressureToday: Int = 0, // давление mb
-    val pressureLevelToday: String = "Normal", // давление mb
+    val pressureLevelToday: String = "", // давление mb
     @DrawableRes val pressureIcon: Int = R.drawable.ic_launcher_foreground,
 
     val precipProb: Int = 0, // вероятность выпадения осадков %
-    val presipProbLevel: String = "Low",
+    val presipProbLevel: String = "",
     @DrawableRes val precipProbIcon: Int = R.drawable.ic_launcher_foreground,
 
     val windSpeedToday: Int = 0,
@@ -31,7 +30,7 @@ data class WeatherUiSate(
     @DrawableRes val windIcon: Int = R.drawable.ic_launcher_foreground,
 
     val uvIndexToday: Int = 0,
-    val uvIndexLevelToday: String = "Normal",
+    val uvIndexLevelToday: String = "",
     val severeRiskToday: Int = 0,
     @DrawableRes val uvIcon: Int = R.drawable.ic_launcher_foreground,
 

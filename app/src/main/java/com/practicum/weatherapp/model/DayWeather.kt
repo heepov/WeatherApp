@@ -1,9 +1,10 @@
 package com.practicum.weatherapp.model
 
 import com.google.gson.annotations.SerializedName
+import java.time.LocalDateTime
 
 data class DayWeather(
-    @SerializedName("datetime") val date: String,
+    @SerializedName("datetimeEpoch") val dateTime: LocalDateTime,
     @SerializedName("tempmax") val tempMax: Float,
     @SerializedName("tempmin") val tempMin: Float,
     @SerializedName("feelslike") val tempFeelsLike: Float,

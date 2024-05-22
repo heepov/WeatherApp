@@ -4,6 +4,8 @@ import android.content.Context
 import android.location.Address
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.weatherapp.R
@@ -31,6 +33,13 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 class WeatherScreenViewModel (): ViewModel() {
+    private val _permissionGranted = MutableLiveData<Boolean?>()
+    val permissionGranted: LiveData<Boolean?> = _permissionGranted
+
+    fun setPermissionGranted(granted: Boolean?) {
+        _permissionGranted.value = granted
+    }
+
     var isRefreshing: Boolean = false
     private val _uiState = MutableStateFlow(WeatherUiSate())
     val uiState: StateFlow<WeatherUiSate> = _uiState.asStateFlow()
@@ -49,7 +58,7 @@ class WeatherScreenViewModel (): ViewModel() {
             _appWallpaperAlpha.value = (newSize - minSize) / (maxSize - minSize)
         }
     }
-    fun fetchWeather(location: Pair<Double, Double>? = null, addresses: MutableList<Address>?= null) {
+    suspend fun fetchWeather(location: Pair<Double, Double>? = null, addresses: MutableList<Address>?= null) {
         viewModelScope.launch {
             _uiState.update { currentState ->
                 currentState.copy(
@@ -65,7 +74,7 @@ class WeatherScreenViewModel (): ViewModel() {
                     updateForecast(weatherData, adress )
                 }
             } else {
-                ApiInit(location = "moscow", key = apiKey) { weatherData ->
+                ApiInit(location = "Locations", key = apiKey) { weatherData ->
                     updateForecast(weatherData)
                 }
             }
@@ -216,6 +225,7 @@ class WeatherScreenViewModel (): ViewModel() {
     fun getCurrentDate(): LocalDate {
         return LocalDate.now()
     }
+
 
     private object weatherTypesAndLeves {
         val iconsWeather = mapOf(

@@ -50,6 +50,8 @@ android {
 }
 
 dependencies {
+    implementation ("androidx.compose.runtime:runtime-livedata:1.0.5")
+
     implementation ("androidx.compose.material:material:1.4.0-beta01")
     // Core library
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")

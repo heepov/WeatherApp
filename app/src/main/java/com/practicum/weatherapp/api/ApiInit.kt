@@ -17,7 +17,7 @@ import java.time.ZoneId
 import java.util.Date
 
 fun ApiInit(
-    location: String = "moscow",
+    location: String = "55.852399,37.623780",
     unitGroup: String = "metric",
     include: String = "current,days,hours",
     key: String = "88G6BX8BBEEWRN3KL86KC9EX7",

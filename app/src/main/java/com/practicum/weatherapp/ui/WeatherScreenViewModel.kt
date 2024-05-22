@@ -1,11 +1,17 @@
 package com.practicum.weatherapp.ui
 
+import android.content.Context
+import android.location.Address
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.practicum.weatherapp.R
 import com.practicum.weatherapp.api.ApiInit
 import com.practicum.weatherapp.model.DayWeather
 import com.practicum.weatherapp.model.UiDayForecast
 import com.practicum.weatherapp.model.UiTimeForecast
+import com.practicum.weatherapp.model.WeatherDataResponse
 import com.practicum.weatherapp.model.WeatherUiSate
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.iconsUvIndex
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.iconsWeather
@@ -16,84 +22,119 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
-class WeatherScreenViewModel : ViewModel() {
+class WeatherScreenViewModel (): ViewModel() {
+    var isRefreshing: Boolean = false
     private val _uiState = MutableStateFlow(WeatherUiSate())
     val uiState: StateFlow<WeatherUiSate> = _uiState.asStateFlow()
     private val currentDateTime = LocalDateTime.now()
+    private val apiKey = "88G6BX8BBEEWRN3KL86KC9EX7"
 
-    init {
-        updateForecast()
+    private val _iconSize = MutableStateFlow(240.dp)
+    val iconSize: StateFlow<Dp> = _iconSize
+
+    private val _appWallpaperAlpha = MutableStateFlow(1f)
+    val appWallpaperAlpha: StateFlow<Float> = _appWallpaperAlpha
+
+    fun updateIconSizeAndAlpha(newSize: Dp, minSize: Dp, maxSize: Dp) {
+        viewModelScope.launch {
+            _iconSize.value = newSize
+            _appWallpaperAlpha.value = (newSize - minSize) / (maxSize - minSize)
+        }
     }
-
-    private fun updateForecast() {
-        val inputTimeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        val outputTimeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        ApiInit(location = "moscow") { weatherData ->
-            if (weatherData != null) {
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        location = weatherData.address,
-                        wallpaperIcon = getWeatherIcon(weatherData.currentConditions.icon),
-
-                        conditionsNow = weatherData.currentConditions.conditions,
-                        tempNow = weatherData.currentConditions.temp.toInt(),
-                        tempTodayMax = weatherData.days.first().tempMax.toInt(),
-                        tempTodayMin = weatherData.days.first().tempMin.toInt(),
-                        tempFeelsLike = weatherData.currentConditions.tempFeelsLike.toInt(),
-                        humiditToday = weatherData.currentConditions.humidity.toInt(),
-                        humiditIcon = R.drawable.humidity,
-
-                        pressureToday = weatherData.currentConditions.pressure.toInt(),
-                        pressureLevelToday = getPressureLevel(weatherData.currentConditions.pressure.toInt()),
-
-                        precipProb = weatherData.currentConditions.precipProb.toInt(),
-                        presipProbLevel = getPrecipProbLevel(weatherData.currentConditions.precipProb.toInt()),
-
-                        windSpeedToday = weatherData.currentConditions.windSpeed.toInt(),
-                        windDirectionToday = weatherData.currentConditions.windDirection,
-
-                        uvIndexToday = weatherData.currentConditions.uvIndex,
-                        uvIndexLevelToday = getUvIndexLevel(weatherData.currentConditions.uvIndex),
-                        severeRiskToday = weatherData.days.first().severeRisk,
-                        uvIcon = getUvIndexIcon(getUvIndexLevel(weatherData.currentConditions.uvIndex)),
-
-                        sunriseToday = outputTimeFormat.format(inputTimeFormat.parse(weatherData.currentConditions.sunrise)),
-                        sunriseIcon = R.drawable.sunrise,
-
-                        sunsetToday = outputTimeFormat.format(inputTimeFormat.parse(weatherData.currentConditions.sunset)),
-                        sunsetIcon = R.drawable.sunset,
-
-                        timeForecast = getTimeForecast(weatherData.days),
-                        daysForecast = getDaysForecast(weatherData.days),
-                    )
+    fun fetchWeather(location: Pair<Double, Double>? = null, addresses: MutableList<Address>?= null) {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    loading = true
+                )
+            }
+            if (location != null) {
+                ApiInit(
+                    location = "${location.first},${location.second}",
+                    key = apiKey
+                ) { weatherData ->
+                    val adress = "${addresses!!.get(0).getLocality()}"
+                    updateForecast(weatherData, adress )
                 }
             } else {
-                // Обработка ошибки
+                ApiInit(location = "moscow", key = apiKey) { weatherData ->
+                    updateForecast(weatherData)
+                }
             }
+            _uiState.update { currentState ->
+                currentState.copy(
+                    loading = false
+                )
+            }
+        }
+    }
+
+    private fun updateForecast(weatherData: WeatherDataResponse? = null, adress: String? = null) {
+        val inputTimeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val outputTimeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        if (weatherData != null) {
+            _uiState.update { currentState ->
+                currentState.copy(
+
+                    location = if (adress != null) adress else weatherData.address,
+                    wallpaperIcon = getWeatherIcon(weatherData.currentConditions.icon),
+
+                    conditionsNow = weatherData.currentConditions.conditions,
+                    tempNow = weatherData.currentConditions.temp.toInt(),
+                    tempTodayMax = weatherData.days.first().tempMax.toInt(),
+                    tempTodayMin = weatherData.days.first().tempMin.toInt(),
+                    tempFeelsLike = weatherData.currentConditions.tempFeelsLike.toInt(),
+                    humiditToday = weatherData.currentConditions.humidity.toInt(),
+                    humiditIcon = R.drawable.humidity,
+
+                    pressureToday = weatherData.currentConditions.pressure.toInt(),
+                    pressureLevelToday = getPressureLevel(weatherData.currentConditions.pressure.toInt()),
+
+                    precipProb = weatherData.currentConditions.precipProb.toInt(),
+                    presipProbLevel = getPrecipProbLevel(weatherData.currentConditions.precipProb.toInt()),
+
+                    windSpeedToday = weatherData.currentConditions.windSpeed.toInt(),
+                    windDirectionToday = weatherData.currentConditions.windDirection,
+
+                    uvIndexToday = weatherData.currentConditions.uvIndex,
+                    uvIndexLevelToday = getUvIndexLevel(weatherData.currentConditions.uvIndex),
+                    severeRiskToday = weatherData.days.first().severeRisk,
+                    uvIcon = getUvIndexIcon(getUvIndexLevel(weatherData.currentConditions.uvIndex)),
+
+                    sunriseToday = outputTimeFormat.format(inputTimeFormat.parse(weatherData.currentConditions.sunrise)),
+                    sunriseIcon = R.drawable.sunrise,
+
+                    sunsetToday = outputTimeFormat.format(inputTimeFormat.parse(weatherData.currentConditions.sunset)),
+                    sunsetIcon = R.drawable.sunset,
+
+                    timeForecast = getTimeForecast(weatherData.days),
+                    daysForecast = getDaysForecast(weatherData.days),
+                )
+            }
+        } else {
+            // Обработка ошибки
         }
     }
 
     private fun getDaysForecast(listDays: List<DayWeather>): List<UiDayForecast> {
         val list = mutableListOf<UiDayForecast>()
         listDays.forEach { day ->
-                list.add(
-                    UiDayForecast(
-                        date = getDayOfWeek(day.dateTime),
-                        tempMax = day.tempMax.toInt(),
-                        tempMin = day.tempMin.toInt(),
-                        icon = getWeatherIcon(day.icon)
-                    )
+            list.add(
+                UiDayForecast(
+                    date = getDayOfWeek(day.dateTime),
+                    tempMax = day.tempMax.toInt(),
+                    tempMin = day.tempMin.toInt(),
+                    icon = getWeatherIcon(day.icon)
                 )
+            )
         }
         return list.take(7)
     }

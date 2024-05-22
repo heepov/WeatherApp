@@ -1,9 +1,12 @@
 package com.practicum.weatherapp.model
 
 import androidx.annotation.DrawableRes
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.practicum.weatherapp.R
 
 data class WeatherUiSate(
+    val loading:Boolean = false,
     val location: String = "",
     @DrawableRes val wallpaperIcon: Int = R.drawable.ic_launcher_foreground,
     val conditionsNow: String = "",

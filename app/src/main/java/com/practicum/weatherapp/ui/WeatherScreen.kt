@@ -1,9 +1,13 @@
 package com.practicum.weatherapp.ui
 
+import android.Manifest
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
+import android.location.Address
+import android.location.Geocoder
+import android.location.Location
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +25,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -43,6 +50,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -53,40 +61,63 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.practicum.weatherapp.R
+import com.practicum.weatherapp.getLastKnownLocation
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import java.util.Locale
+import kotlin.math.max
+import kotlin.math.min
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class,
+    ExperimentalMaterialApi::class
+)
 @Preview(name = "Dark Mode", showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(name = "Light Mode", showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun WeatherScreen(
-    weatherViewModel: WeatherScreenViewModel = viewModel()
+    weatherViewModel: WeatherScreenViewModel = viewModel(),
+    modifier: Modifier = Modifier,
 ) {
     val weatherUiState by weatherViewModel.uiState.collectAsState()
     val state = rememberLazyListState()
     val density = LocalDensity.current
-    val iconMinSize = 180.dp
-    val iconMaxSize = 360.dp
-    var iconSize by remember { mutableStateOf(iconMaxSize) }
-    var appWallpaperAlpha by remember { mutableFloatStateOf(1f) }
+    val iconMinSize = 100.dp
+    val iconMaxSize = 240.dp
+    val iconSize by weatherViewModel.iconSize.collectAsState()
+    val appWallpaperAlpha by weatherViewModel.appWallpaperAlpha.collectAsState()
+
+    val context = LocalContext.current
+    val locationPermissionState =
+        rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 fun deltaDp() = with(density) { available.y.toDp() }
                 if (available.y < 0 && iconSize > iconMinSize && state.firstVisibleItemIndex == 0) {
-                    iconSize = max(iconMinSize, iconSize + deltaDp())
+                    weatherViewModel.updateIconSizeAndAlpha(
+                        max(iconMinSize, iconSize + deltaDp()), iconMinSize, iconMaxSize
+                    )
                 }
                 if (available.y > 0 && iconSize < iconMaxSize && state.firstVisibleItemIndex == 0) {
-                    iconSize = min(iconMaxSize, iconSize + deltaDp())
+                    weatherViewModel.updateIconSizeAndAlpha(
+                        min(iconMaxSize, iconSize + deltaDp()), iconMinSize, iconMaxSize
+                    )
                 }
-                appWallpaperAlpha = (iconSize - iconMinSize) / (iconMaxSize - iconMinSize)
                 return Offset.Zero
             }
         }
     }
+
 
 
     WeatherAppTheme {
@@ -96,6 +127,19 @@ fun WeatherScreen(
         ) {
             Scaffold(
                 topBar = {
+                    LaunchedEffect(Unit) {
+                        if (locationPermissionState.hasPermission) {
+                            val location = getLastKnownLocation(context = context)
+                            if (location != null) {
+                                val geocoder = Geocoder(context, Locale.getDefault())
+                                val adress =
+                                    geocoder.getFromLocation(location!!.first, location!!.second, 1)
+                                weatherViewModel.fetchWeather(location, adress)
+                            }
+                        } else {
+                            weatherViewModel.fetchWeather()
+                        }
+                    }
                     val layoutDirection = LocalLayoutDirection.current
                     AppBar(
                         place = weatherUiState.location,
@@ -120,7 +164,6 @@ fun WeatherScreen(
                         .padding(bottom = 32.dp)
                         .nestedScroll(nestedScrollConnection)
                 ) {
-
 
                     item {
                         AppWallpaper(
@@ -176,7 +219,7 @@ fun WeatherScreen(
                             thickness = 2.dp,
                             modifier = Modifier
                                 .alpha(1 - appWallpaperAlpha)
-                            )
+                        )
                     }
 
                     item {
@@ -244,7 +287,6 @@ fun WeatherScreen(
         }
     }
 }
-
 
 
 @Composable

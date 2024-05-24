@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.weatherapp.R
 import com.practicum.weatherapp.api.ApiInit
+import com.practicum.weatherapp.model.CurrentWeather
 import com.practicum.weatherapp.model.DayWeather
+import com.practicum.weatherapp.model.SavedLocation
 import com.practicum.weatherapp.model.UiDayForecast
 import com.practicum.weatherapp.model.UiTimeForecast
 import com.practicum.weatherapp.model.WeatherDataResponse
@@ -17,6 +19,7 @@ import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.i
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.precipProbLevel
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.pressureLevel
 import com.practicum.weatherapp.ui.WeatherScreenViewModel.weatherTypesAndLeves.uvIndexLevel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,46 +39,56 @@ class WeatherScreenViewModel() : ViewModel() {
     private val apiKey = "88G6BX8BBEEWRN3KL86KC9EX7"
 
 
+    val searchLocationList: List<String> = emptyList()
+    val savedLocationList: List<String> = emptyList()
+    val savedLocationWeatherList: MutableList<SavedLocation>? = null
+
+
     private val _iconSize = MutableStateFlow(240.dp)
     val iconSize: StateFlow<Dp> = _iconSize
 
     private val _appWallpaperAlpha = MutableStateFlow(1f)
     val appWallpaperAlpha: StateFlow<Float> = _appWallpaperAlpha
 
-    fun updateIconSizeAndAlpha(newSize: Dp) {
-        viewModelScope.launch {
-            _iconSize.value = newSize
-            _appWallpaperAlpha.value = (newSize - _uiState.value.iconMinSize) / (_uiState.value.iconMaxSize - _uiState.value.iconMinSize)
+    fun changePermissionState(state: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                permissionState = state
+            )
         }
     }
 
-    suspend fun fetchWeather(
+    fun updateIconSizeAndAlpha(newSize: Dp) {
+        viewModelScope.launch {
+            _iconSize.value = newSize
+            _appWallpaperAlpha.value =
+                (newSize - _uiState.value.iconMinSize) / (_uiState.value.iconMaxSize - _uiState.value.iconMinSize)
+        }
+    }
+
+    suspend fun fetchAllWeather(
         location: Pair<Double, Double>? = null,
-        addresses: MutableList<Address>? = null
+        addresses: MutableList<Address>? = null,
+        locationString: String = "Moscow"
     ) {
         viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    loading = true
-                )
-            }
             if (location != null) {
                 ApiInit(
                     location = "${location.first},${location.second}",
-                    key = apiKey
+                    key = apiKey,
+                    include = "current,days,hours"
                 ) { weatherData ->
                     val adress = "${addresses!!.get(0).getLocality()}"
                     updateForecast(weatherData, adress)
                 }
             } else {
-                ApiInit(location = "Locations", key = apiKey) { weatherData ->
+                ApiInit(
+                    location = locationString,
+                    key = apiKey,
+                    include = "current,days,hours"
+                ) { weatherData ->
                     updateForecast(weatherData)
                 }
-            }
-            _uiState.update { currentState ->
-                currentState.copy(
-                    loading = false
-                )
             }
         }
     }
@@ -86,7 +99,6 @@ class WeatherScreenViewModel() : ViewModel() {
         if (weatherData != null) {
             _uiState.update { currentState ->
                 currentState.copy(
-
                     location = if (adress != null) adress else weatherData.address,
                     wallpaperIcon = getWeatherIcon(weatherData.currentConditions.icon),
 
@@ -122,6 +134,14 @@ class WeatherScreenViewModel() : ViewModel() {
                     daysForecast = getDaysForecast(weatherData.days),
                 )
             }
+            savedLocationWeatherList?.add(
+                SavedLocation(
+                    resolvedAddress = weatherData.resolvedAddress,
+                    address = "My location",
+                    description = weatherData.description,
+                    currentConditions = weatherData.currentConditions,
+                )
+            )
         } else {
             // Обработка ошибки
         }
@@ -218,6 +238,45 @@ class WeatherScreenViewModel() : ViewModel() {
 
     fun getCurrentDate(): LocalDate {
         return LocalDate.now()
+    }
+
+    suspend fun getLocationsList(): MutableList<SavedLocation>? {
+        val job = viewModelScope.launch(Dispatchers.IO) {
+            savedLocationList.forEach {
+                ApiInit(
+                    location = it,
+                    key = apiKey,
+                    include = "current"
+                ) { weatherData ->
+                    if (weatherData != null) {
+                        savedLocationWeatherList?.add(
+                            SavedLocation(
+                                resolvedAddress = weatherData.resolvedAddress,
+                                address = weatherData.address,
+                                description = weatherData.description,
+                                currentConditions = weatherData.currentConditions,
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        job.join()
+        return savedLocationWeatherList
+    }
+
+    fun getSearchLocationsList(searchText: String): String {
+        var location:String = "Not found"
+        ApiInit(
+            location = searchText,
+            key = apiKey,
+            include = "current"
+        ) { weatherData ->
+            if (weatherData != null) {
+                location = weatherData.resolvedAddress
+            }
+        }
+        return location
     }
 
 

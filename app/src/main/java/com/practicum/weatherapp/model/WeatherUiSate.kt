@@ -4,16 +4,14 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.practicum.weatherapp.R
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 data class WeatherUiSate(
+    val permissionState: Boolean = false,
+
 
     val iconMinSize: Dp = 100.dp,
     val iconMaxSize: Dp = 240.dp,
 
-
-    val loading:Boolean = false,
     val location: String = "",
     @DrawableRes val wallpaperIcon: Int = R.drawable.ic_launcher_foreground,
     val conditionsNow: String = "",

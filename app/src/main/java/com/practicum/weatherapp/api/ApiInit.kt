@@ -14,7 +14,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Date
 
 fun ApiInit(
     location: String = "Voronezh",
@@ -63,6 +62,7 @@ fun ApiInit(
     })
 
 }
+
 class CustomDateTypeAdapter : TypeAdapter<LocalDateTime>() {
 
     override fun write(out: JsonWriter, value: LocalDateTime) {

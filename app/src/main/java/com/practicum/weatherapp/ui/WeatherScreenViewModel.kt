@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.weatherapp.R
 import com.practicum.weatherapp.api.ApiInit
-import com.practicum.weatherapp.model.CurrentWeather
 import com.practicum.weatherapp.model.DayWeather
 import com.practicum.weatherapp.model.SavedLocation
 import com.practicum.weatherapp.model.UiDayForecast
@@ -265,7 +264,7 @@ class WeatherScreenViewModel() : ViewModel() {
         return savedLocationWeatherList
     }
 
-    fun getSearchLocationsList(searchText: String): String {
+    fun getSearchLocation(searchText: String): String {
         var location:String = "Not found"
         ApiInit(
             location = searchText,

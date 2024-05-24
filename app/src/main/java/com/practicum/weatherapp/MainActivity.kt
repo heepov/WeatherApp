@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     viewModel.changePermissionState(locationPermissions)
                     // First time the user sees this feature or the user doesn't want to be asked again
-                    "This feature requires location permission"
+                    "This application requires location permission. Please grant us fine location. Thank you :D"
                 }
 
                 val buttonText = if (!allPermissionsRevoked) {

@@ -13,23 +13,36 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.practicum.weatherapp.R
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
@@ -73,17 +86,46 @@ fun AddLocationScreen(
                         .padding(bottom = 32.dp)
                         .padding(top = 32.dp)
                 ) {
-                    var searchedLocation: Pair<String, String>
-                    TextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface),
-                        value = "Search",
-                        onValueChange = {
-//                            FindLocationItem(
-//                                searchedLocation = getSubStrings(viewModel.getSearchLocationsList(it))
-//                            )
-                        })
+                    var searchedLocation: Pair<String, String> = Pair("Moscow", "Russia")
+                    var textState by remember { mutableStateOf(TextFieldValue("")) }
+                    var displayText by remember { mutableStateOf("") }
+                    Column() {
+                        BasicTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                            value = textState,
+                            onValueChange = {
+                                textState = it
+                            },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    displayText = textState.text
+                                }
+                            ),
+                            textStyle = TextStyle(
+                                fontSize =  MaterialTheme.typography.labelLarge.fontSize,
+                                fontFamily =  MaterialTheme.typography.labelLarge.fontFamily,
+                                fontWeight = MaterialTheme.typography.labelLarge.fontWeight,
+                                color = MaterialTheme.colorScheme.primary,
+                            ),
+                            decorationBox = { innerTextField ->
+                                if (textState.text.isEmpty()) {
+                                    Text(
+                                        text = "Enter text here",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+                        Divider(color = MaterialTheme.colorScheme.primary, thickness = 0.2.dp)
+                    }
+                    SearchingLocationItem(searchedLocation = getSubStrings(viewModel.getSearchLocation(displayText)))
                 }
             }
         }
@@ -96,12 +138,10 @@ fun getSubStrings(input: String): Pair<String, String> {
     return Pair(parts[0].trim(), if (parts.size > 1) parts[1].trim() else "")
 }
 
-@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
-fun FindLocationItem(
+fun SearchingLocationItem(
     modifier: Modifier = Modifier,
-    searchedLocation: Pair<String, String>,
+    searchedLocation: Pair<String, String> = Pair("Moscow", "Russia")
 ) {
     Column(
         modifier = modifier

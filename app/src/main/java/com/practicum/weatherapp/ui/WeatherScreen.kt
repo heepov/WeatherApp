@@ -60,52 +60,50 @@ import com.practicum.weatherapp.fillViewModel
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.supervisorScope
 
 
-@OptIn(
-    ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class,
-    ExperimentalMaterialApi::class
-)
+
+@OptIn(ExperimentalFoundationApi::class)
 @Preview(name = "Dark Mode", showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(name = "Light Mode", showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun WeatherScreen(
-    viewModel: WeatherScreenViewModel = viewModel(),
+    viewModel: WeatherScreenViewModel,
     modifier: Modifier = Modifier,
 ) {
     val weatherUiState by viewModel.uiState.collectAsState()
     val state = rememberLazyListState()
     val density = LocalDensity.current
-    val iconMinSize = 100.dp
-    val iconMaxSize = 240.dp
     val iconSize by viewModel.iconSize.collectAsState()
-    val appWallpaperAlpha by viewModel.appWallpaperAlpha.collectAsState()
-
-    val context = LocalContext.current
-    val locationPermissionState =
-        rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+    val iconAlpha by viewModel.appWallpaperAlpha.collectAsState()
 
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                fun deltaDp() = with(density) { available.y.toDp() }
-                if (available.y < 0 && iconSize > iconMinSize && state.firstVisibleItemIndex == 0) {
+                val deltaDp = with(density) { available.y.toDp() }
+                if (available.y < 0 && iconSize > weatherUiState.iconMinSize && state.firstVisibleItemIndex == 0) {
+
                     viewModel.updateIconSizeAndAlpha(
-                        max(iconMinSize, iconSize + deltaDp()), iconMinSize, iconMaxSize
+                        max(weatherUiState.iconMinSize, iconSize + deltaDp)
                     )
+
                 }
-                if (available.y > 0 && iconSize < iconMaxSize && state.firstVisibleItemIndex == 0) {
+                if (available.y > 0 && iconSize < weatherUiState.iconMaxSize && state.firstVisibleItemIndex == 0) {
                     viewModel.updateIconSizeAndAlpha(
-                        min(iconMaxSize, iconSize + deltaDp()), iconMinSize, iconMaxSize
+                        min(weatherUiState.iconMaxSize, iconSize + deltaDp)
                     )
                 }
                 return Offset.Zero
             }
         }
     }
-
-
 
     WeatherAppTheme {
         WeatherAppTheme {
@@ -145,10 +143,9 @@ fun WeatherScreen(
                                 icon = weatherUiState.wallpaperIcon,
                                 description = weatherUiState.conditionsNow,
                                 iconSize = iconSize,
-                                iconAlpha = appWallpaperAlpha,
+                                iconAlpha = iconAlpha,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .alpha(appWallpaperAlpha)
                             )
                         }
                         stickyHeader {
@@ -193,7 +190,7 @@ fun WeatherScreen(
                                 color = colorScheme.primary,
                                 thickness = 2.dp,
                                 modifier = Modifier
-                                    .alpha(1 - appWallpaperAlpha)
+                                    .alpha(1 - iconAlpha)
                             )
                         }
 

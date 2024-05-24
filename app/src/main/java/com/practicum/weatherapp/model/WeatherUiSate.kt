@@ -1,11 +1,18 @@
 package com.practicum.weatherapp.model
 
 import androidx.annotation.DrawableRes
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.practicum.weatherapp.R
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 data class WeatherUiSate(
+
+    val iconMinSize: Dp = 100.dp,
+    val iconMaxSize: Dp = 240.dp,
+
+
     val loading:Boolean = false,
     val location: String = "",
     @DrawableRes val wallpaperIcon: Int = R.drawable.ic_launcher_foreground,

@@ -7,11 +7,13 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +23,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +35,7 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -45,22 +52,27 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
+import androidx.navigation.NavController
 import com.practicum.weatherapp.R
+import com.practicum.weatherapp.Routes
+import com.practicum.weatherapp.TopBar
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Preview(name = "Dark Mode", showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(name = "Light Mode", showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun WeatherScreen(
-    viewModel: WeatherScreenViewModel = WeatherScreenViewModel(),
     modifier: Modifier = Modifier,
+    viewModel: WeatherScreenViewModel = WeatherScreenViewModel(),
+    navController: NavController
 ) {
     val weatherUiState by viewModel.uiState.collectAsState()
     val state = rememberLazyListState()
@@ -91,161 +103,145 @@ fun WeatherScreen(
     }
 
     WeatherAppTheme {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Scaffold(
-                topBar = {
-                    val layoutDirection = LocalLayoutDirection.current
-                    AppBar(
-                        place = weatherUiState.location,
+        Scaffold(
+            topBar = {
+                TopBar(
+                    title =weatherUiState.location,
+                    leftIcon = R.drawable.icon_list,
+                    rightIcon = R.drawable.icon_settings,
+                    leftIconOnClick = { navController.navigate(Routes.LocationsScreen.route) },
+                    rightIconOnClick = { navController.navigate(Routes.LocationsScreen.route) }
+                )
+            }
+        ) { contentPadding ->
+            LazyColumn(
+                state = state,
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp)
+                    .nestedScroll(nestedScrollConnection)
+            ) {
+
+                item {
+                    AppWallpaper(
+                        icon = weatherUiState.wallpaperIcon,
+                        description = weatherUiState.conditionsNow,
+                        iconSize = iconSize,
+                        iconAlpha = iconAlpha,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(
-                                start = WindowInsets.safeDrawing
-                                    .asPaddingValues()
-                                    .calculateStartPadding(layoutDirection),
-                                end = WindowInsets.safeDrawing
-                                    .asPaddingValues()
-                                    .calculateEndPadding(layoutDirection),
-                            ),
-                        iconLeft = R.drawable.icon_list,
-                        iconRight = R.drawable.icon_settings,
-                        iconRightOnClick = { TODO() },
-                        iconLeftOnClick = { LocationsScreen(viewModel) }
                     )
                 }
-            ) { contentPadding ->
-                LazyColumn(
-                    state = state,
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 32.dp)
-                        .nestedScroll(nestedScrollConnection)
-                ) {
-
-                    item {
-                        AppWallpaper(
-                            icon = weatherUiState.wallpaperIcon,
-                            description = weatherUiState.conditionsNow,
-                            iconSize = iconSize,
-                            iconAlpha = iconAlpha,
+                stickyHeader {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colorScheme.background)
+                            .padding(bottom = 16.dp)
+                    ) {
+                        CircleCardSimple(
+                            value = weatherUiState.tempNow,
+                            extraValueFirst = weatherUiState.tempTodayMax,
+                            extraValueSecond = weatherUiState.tempTodayMin,
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .weight(1f)
                         )
-                    }
-                    stickyHeader {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(colorScheme.background)
-                                .padding(bottom = 16.dp)
-                        ) {
-                            CircleCardSimple(
-                                value = weatherUiState.tempNow,
-                                extraValueFirst = weatherUiState.tempTodayMax,
-                                extraValueSecond = weatherUiState.tempTodayMin,
-                                modifier = Modifier
-                                    .weight(1f)
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f),
-                            ) {
-                                RectangleCardSmall(
-                                    title = "${
-                                        stringResource(id = R.string.precipitation_chance)
-                                            .uppercase()
-                                    } ${weatherUiState.precipProb}%",
-                                    description = weatherUiState.presipProbLevel,
-                                    modifier = Modifier
-                                )
-                                Spacer(modifier = Modifier.size(16.dp))
-                                RectangleCardSmall(
-                                    title = "${
-                                        stringResource(id = R.string.pressure)
-                                            .uppercase()
-                                    } ${weatherUiState.pressureToday}",
-                                    description = weatherUiState.pressureLevelToday,
-                                    modifier = Modifier
-                                )
-                            }
-
-                        }
-                        Divider(
-                            color = colorScheme.primary,
-                            thickness = 2.dp,
-                            modifier = Modifier
-                                .alpha(1 - iconAlpha)
-                        )
-                    }
-
-                    item {
                         Column(
                             modifier = Modifier
+                                .weight(1f),
                         ) {
+                            RectangleCardSmall(
+                                title = "${
+                                    stringResource(id = R.string.precipitation_chance)
+                                        .uppercase()
+                                } ${weatherUiState.precipProb}%",
+                                description = weatherUiState.presipProbLevel,
+                                modifier = Modifier
+                            )
                             Spacer(modifier = Modifier.size(16.dp))
-                            CardListSmall(weatherUiState.timeForecast)
+                            RectangleCardSmall(
+                                title = "${
+                                    stringResource(id = R.string.pressure)
+                                        .uppercase()
+                                } ${weatherUiState.pressureToday}",
+                                description = weatherUiState.pressureLevelToday,
+                                modifier = Modifier
+                            )
+                        }
+
+                    }
+                    Divider(
+                        color = colorScheme.primary,
+                        thickness = 2.dp,
+                        modifier = Modifier
+                            .alpha(1 - iconAlpha)
+                    )
+                }
+                item {
+                    Column(
+                        modifier = Modifier
+                    ) {
+                        Spacer(modifier = Modifier.size(16.dp))
+                        CardListSmall(weatherUiState.timeForecast)
+                        Spacer(modifier = Modifier.size(16.dp))
+                        CardListBig(weatherUiState.daysForecast)
+                        Spacer(modifier = Modifier.size(16.dp))
+                        Row() {
+                            RectangleCardWithUnit(
+                                title = R.string.humidity,
+                                icon = R.drawable.humidity,
+                                value = weatherUiState.humiditToday,
+                                unit = R.string.percent,
+                                modifier = Modifier.weight(1f)
+                            )
                             Spacer(modifier = Modifier.size(16.dp))
-                            CardListBig(weatherUiState.daysForecast)
+                            RectangleCardWithUnit(
+                                title = R.string.wind_speed,
+                                value = weatherUiState.windSpeedToday,
+                                direction = weatherUiState.windDirectionToday,
+                                unit = R.string.wind_unit_metric,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(16.dp))
+                        Row() {
+                            RectangleCardWithDescription(
+                                title = R.string.uv_index,
+                                description = weatherUiState.uvIndexLevelToday,
+                                icon = weatherUiState.uvIcon,
+                                value = weatherUiState.uvIndexToday,
+                                modifier = Modifier.weight(1f)
+                            )
                             Spacer(modifier = Modifier.size(16.dp))
-                            Row() {
-                                RectangleCardWithUnit(
-                                    title = R.string.humidity,
-                                    icon = R.drawable.humidity,
-                                    value = weatherUiState.humiditToday,
-                                    unit = R.string.percent,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.size(16.dp))
-                                RectangleCardWithUnit(
-                                    title = R.string.wind_speed,
-                                    value = weatherUiState.windSpeedToday,
-                                    direction = weatherUiState.windDirectionToday,
-                                    unit = R.string.wind_unit_metric,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
+                            RectangleCardSimple(
+                                title = R.string.sunrise,
+                                value = weatherUiState.sunriseToday,
+                                icon = R.drawable.sunrise,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(16.dp))
+                        Row() {
+                            RectangleCardSimple(
+                                title = R.string.sunset,
+                                value = weatherUiState.sunsetToday,
+                                icon = R.drawable.sunset,
+                                modifier = Modifier.weight(1f)
+                            )
                             Spacer(modifier = Modifier.size(16.dp))
-                            Row() {
-                                RectangleCardWithDescription(
-                                    title = R.string.uv_index,
-                                    description = weatherUiState.uvIndexLevelToday,
-                                    icon = weatherUiState.uvIcon,
-                                    value = weatherUiState.uvIndexToday,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.size(16.dp))
-                                RectangleCardSimple(
-                                    title = R.string.sunrise,
-                                    value = weatherUiState.sunriseToday,
-                                    icon = R.drawable.sunrise,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            Spacer(modifier = Modifier.size(16.dp))
-                            Row() {
-                                RectangleCardSimple(
-                                    title = R.string.sunset,
-                                    value = weatherUiState.sunsetToday,
-                                    icon = R.drawable.sunset,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.size(16.dp))
-                                CircleCardWithDescription(
-                                    description = R.string.feels_like,
-                                    value = weatherUiState.tempFeelsLike,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
+                            CircleCardWithDescription(
+                                description = R.string.feels_like,
+                                value = weatherUiState.tempFeelsLike,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }
             }
         }
     }
+
 
 }
 
@@ -269,7 +265,7 @@ fun AppBar(
             onClick = {
                 iconLeftOnClick
                 Log.d("AppBar", "iconLeftOnClick")
-                      },
+            },
         ) {
             Icon(
                 modifier = Modifier,
@@ -310,7 +306,7 @@ fun AppWallpaper(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 64.dp)
+            .padding(vertical = 64.dp),
     ) {
         Icon(
             painter = painterResource(id = icon),

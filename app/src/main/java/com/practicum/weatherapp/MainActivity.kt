@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.practicum.weatherapp.ui.WeatherScreen
@@ -59,7 +60,11 @@ class MainActivity : ComponentActivity() {
                         fillViewModel(context, viewModel)
                     }
                 }
-                WeatherScreen(viewModel)
+                val navController = rememberNavController()
+                NavGraph(
+                    navController = navController,
+                    viewModel = viewModel
+                )
             } else {
                 val allPermissionsRevoked =
                     locationPermissionsState.permissions.size ==

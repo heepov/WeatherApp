@@ -2,8 +2,10 @@ package com.practicum.weatherapp.ui
 
 import android.app.Activity
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -39,7 +41,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.practicum.weatherapp.R
+import com.practicum.weatherapp.Routes
+import com.practicum.weatherapp.TopBar
+import com.practicum.weatherapp.model.SavedLocation
 import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -47,11 +53,12 @@ import com.practicum.weatherapp.ui.theme.WeatherAppTheme
 @Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun AddLocationScreen(
-    viewModel: WeatherScreenViewModel = WeatherScreenViewModel(),
     modifier: Modifier = Modifier,
+    viewModel: WeatherScreenViewModel = WeatherScreenViewModel(),
+    navController: NavController
 ) {
     val weatherUiState by viewModel.uiState.collectAsState()
-
+//    val searchLocation by viewModel.searchLocation.collectAsState()
     WeatherAppTheme {
         Surface(
             modifier = Modifier
@@ -59,23 +66,10 @@ fun AddLocationScreen(
         ) {
             Scaffold(
                 topBar = {
-                    val layoutDirection = LocalLayoutDirection.current
-                    AppBar(
-                        place = "Locations".uppercase(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = WindowInsets.safeDrawing
-                                    .asPaddingValues()
-                                    .calculateStartPadding(layoutDirection),
-                                end = WindowInsets.safeDrawing
-                                    .asPaddingValues()
-                                    .calculateEndPadding(layoutDirection),
-                            ),
-                        iconLeft = R.drawable.icon_back,
-                        iconRight = R.drawable.icon_pluse,
-                        iconRightOnClick = { TODO() },
-                        iconLeftOnClick = { (LocalContext.current as? Activity)?.finish() },
+                    TopBar(
+                        title = "Add Location".uppercase(),
+                        leftIcon = R.drawable.icon_close,
+                        leftIconOnClick = { navController.navigate(Routes.LocationsScreen.route) },
                     )
                 }
             ) { contentPadding ->
@@ -86,7 +80,6 @@ fun AddLocationScreen(
                         .padding(bottom = 32.dp)
                         .padding(top = 32.dp)
                 ) {
-                    var searchedLocation: Pair<String, String> = Pair("Moscow", "Russia")
                     var textState by remember { mutableStateOf(TextFieldValue("")) }
                     var displayText by remember { mutableStateOf("") }
                     Column() {
@@ -104,11 +97,12 @@ fun AddLocationScreen(
                             keyboardActions = KeyboardActions(
                                 onDone = {
                                     displayText = textState.text
+                                    viewModel.getSearchLocation(displayText)
                                 }
                             ),
                             textStyle = TextStyle(
-                                fontSize =  MaterialTheme.typography.labelLarge.fontSize,
-                                fontFamily =  MaterialTheme.typography.labelLarge.fontFamily,
+                                fontSize = MaterialTheme.typography.labelLarge.fontSize,
+                                fontFamily = MaterialTheme.typography.labelLarge.fontFamily,
                                 fontWeight = MaterialTheme.typography.labelLarge.fontWeight,
                                 color = MaterialTheme.colorScheme.primary,
                             ),
@@ -125,7 +119,12 @@ fun AddLocationScreen(
                         )
                         Divider(color = MaterialTheme.colorScheme.primary, thickness = 0.2.dp)
                     }
-                    SearchingLocationItem(searchedLocation = getSubStrings(viewModel.getSearchLocation(displayText)))
+                    if (weatherUiState.seachingLocation != null) {
+                        SearchingLocationItem(
+                            searchedLocation = weatherUiState.seachingLocation!!,
+                            onClick = { viewModel.saveLocation(weatherUiState.seachingLocation!!)}
+                        )
+                    }
                 }
             }
         }
@@ -133,7 +132,7 @@ fun AddLocationScreen(
 }
 
 fun getSubStrings(input: String): Pair<String, String> {
-    if(input == "Not found") return Pair("Not found", "")
+    if (input == "Not found") return Pair("Not found", "")
     val parts = input.split(",", limit = 2)
     return Pair(parts[0].trim(), if (parts.size > 1) parts[1].trim() else "")
 }
@@ -141,22 +140,24 @@ fun getSubStrings(input: String): Pair<String, String> {
 @Composable
 fun SearchingLocationItem(
     modifier: Modifier = Modifier,
-    searchedLocation: Pair<String, String> = Pair("Moscow", "Russia")
+    searchedLocation: SavedLocation,
+    onClick: () -> Unit
 ) {
     Column(
         modifier = modifier
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier
                 .padding(vertical = 16.dp)
         ) {
             Text(
-                text = searchedLocation.first,
+                text = searchedLocation.getCity(),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleLarge,
             )
             Text(
-                text = searchedLocation.second,
+                text = searchedLocation.getCountry(),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge,
             )

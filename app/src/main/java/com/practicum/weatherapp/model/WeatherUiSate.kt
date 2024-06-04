@@ -7,7 +7,8 @@ import com.practicum.weatherapp.R
 
 data class WeatherUiSate(
     val permissionState: Boolean = false,
-
+    val seachingLocation:SavedLocation? = null,
+    var savedLocations: MutableList<SavedLocation> =  mutableListOf(),
 
     val iconMinSize: Dp = 100.dp,
     val iconMaxSize: Dp = 240.dp,

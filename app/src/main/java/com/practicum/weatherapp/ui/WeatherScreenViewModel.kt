@@ -1,6 +1,7 @@
 package com.practicum.weatherapp.ui
 
 import android.location.Address
+import android.util.Log
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,11 +38,6 @@ class WeatherScreenViewModel() : ViewModel() {
     val uiState: StateFlow<WeatherUiSate> = _uiState.asStateFlow()
     private val currentDateTime = LocalDateTime.now()
     private val apiKey = "88G6BX8BBEEWRN3KL86KC9EX7"
-
-
-    val searchLocationList: List<String> = emptyList()
-    val savedLocationList: List<String> = emptyList()
-    val savedLocationWeatherList: MutableList<SavedLocation>? = null
 
 
     private val _iconSize = MutableStateFlow(240.dp)
@@ -133,12 +130,12 @@ class WeatherScreenViewModel() : ViewModel() {
                     daysForecast = getDaysForecast(weatherData.days),
                 )
             }
-            savedLocationWeatherList?.add(
+            saveLocation(
                 SavedLocation(
                     resolvedAddress = weatherData.resolvedAddress,
-                    address = "My location",
-                    description = weatherData.description,
+                    address = weatherData.address,
                     currentConditions = weatherData.currentConditions,
+                    myLocation = true
                 )
             )
         } else {
@@ -239,43 +236,86 @@ class WeatherScreenViewModel() : ViewModel() {
         return LocalDate.now()
     }
 
-    suspend fun getLocationsList(): MutableList<SavedLocation>? {
-        val job = viewModelScope.launch(Dispatchers.IO) {
-            savedLocationList.forEach {
+    suspend fun updateSavedLocationsList() {
+        val updatedList: MutableList<SavedLocation> = mutableListOf()
+        withContext(Dispatchers.IO) {
+            uiState.value.savedLocations.forEach {
                 ApiInit(
-                    location = it,
+                    location = it.address,
                     key = apiKey,
                     include = "current"
                 ) { weatherData ->
+                    Log.d("IO", weatherData.toString())
                     if (weatherData != null) {
-                        savedLocationWeatherList?.add(
+                        updatedList.add(
                             SavedLocation(
                                 resolvedAddress = weatherData.resolvedAddress,
                                 address = weatherData.address,
-                                description = weatherData.description,
                                 currentConditions = weatherData.currentConditions,
+                                myLocation = it.myLocation
                             )
                         )
                     }
                 }
             }
         }
-        job.join()
-        return savedLocationWeatherList
+        uiState.value.savedLocations = updatedList
+//        _uiState.update { currentState ->
+//            currentState.copy(
+//                savedLocations = updatedList
+//            )
+//        }
     }
 
-    fun getSearchLocation(searchText: String): String {
-        var location:String = "Not found"
-        ApiInit(
-            location = searchText,
-            key = apiKey,
-            include = "current"
-        ) { weatherData ->
-            if (weatherData != null) {
-                location = weatherData.resolvedAddress
+    fun saveLocation(savedLocation: SavedLocation) {
+        uiState.value.savedLocations.add(
+            savedLocation
+        )
+        _uiState.update { currentState ->
+            currentState.copy(
+                savedLocations = currentState.savedLocations
+            )
+        }
+    }
+
+    fun getSearchLocation(searchText: String) {
+        viewModelScope.launch {
+            ApiInit(
+                location = searchText,
+                key = apiKey,
+                include = "current"
+            ) { weatherData ->
+                val location: SavedLocation
+                if (weatherData != null) {
+
+                    Log.d(
+                        "SavedLocation", "resolvedAddress = ${weatherData.resolvedAddress},\n" +
+                                "                        address = ${weatherData.address},\n" +
+                                "                        description = ${weatherData.description}"
+                    )
+                    location = SavedLocation(
+                        resolvedAddress = weatherData.resolvedAddress,
+                        address = weatherData.address,
+                        currentConditions = weatherData.currentConditions,
+                        myLocation = false
+                    )
+                    Log.d("SavedLocation", "location: ${location.resolvedAddress}")
+
+                } else {
+                    location = SavedLocation(
+                        resolvedAddress = "Not found, please try again",
+                        address = "",
+                        currentConditions = null,
+                        myLocation = false
+                    )
+                }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        seachingLocation = location
+                    )
+                }
             }
         }
-        return location
     }
 
 
